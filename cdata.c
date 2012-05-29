@@ -42,7 +42,14 @@ module_param(dev_major, uint, 0);
 
 static int cdata_open(struct inode *inode, struct file *filp)
 {
+	int i;
+
 	printk(KERN_INFO "CDATA: is opened !!\n");
+
+	for(i = 0; i < 500000; i++){
+        	;
+	}
+
 	return 0; 
 }
 
