@@ -47,7 +47,8 @@ static int cdata_open(struct inode *inode, struct file *filp)
 	printk(KERN_INFO "CDATA: is opened !!\n");
 
 	for(i = 0; i < 500000; i++){
-        	;
+		printk(KERN_INFO "CDATA: for-loop=%d !!\n",i);
+                schedule();
 	}
 
 	return 0; 
