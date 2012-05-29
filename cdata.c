@@ -39,7 +39,7 @@
 
 static int cdata_open(struct inode *inode, struct file *filp)
 {
-	printk(KERN_INFO "CDATA: is opened!!\n");
+	printk(KERN_INFO "CDATA: is opened !!\n");
 	return 0; 
 }
 
@@ -50,7 +50,7 @@ ssize_t cdata_write(struct file *filp, const char *buf, size_t size,loff_t *off)
 
 int cdata_close(struct inode *inode, struct file *filp)
 {
-	printk(KERN_INFO "CDATA: is closed\n");
+	printk(KERN_INFO "CDATA: is closed ~~\n");
 	return 0;
 }
 
