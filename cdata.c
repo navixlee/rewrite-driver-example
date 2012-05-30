@@ -36,8 +36,8 @@
 
 #define DEV_NAME  "cdata"
 
-static unsigned int dev_major = 0;
-module_param(dev_major, uint, 0);
+/*  static unsigned int dev_major = 0;
+module_param(dev_major, uint, 0);*/
 
 
 static int cdata_open(struct inode *inode, struct file *filp)
@@ -45,35 +45,61 @@ static int cdata_open(struct inode *inode, struct file *filp)
 	int i;
 
 	printk(KERN_INFO "CDATA: is opened !!\n");
-
-	for(i = 0; i < 500000; i++){
+       
+	if((i = MINOR(inode->i_rdev)) != 0){
+		printk(KERN_INFO "ERROR MINOR NUMBER.\n");
+		return -ENODEV;
+	}
+	printk(KERN_INFO "minor number = %d.\n",i);
+    	
+	 /*for(i = 0; i < 500000; i++){
 		printk(KERN_INFO "CDATA: for-loop=%d !!\n",i);
                 schedule();
-	}
+	}*/
 
 	return 0; 
 }
 
-ssize_t cdata_write(struct file *filp, const char *buf, size_t size,loff_t *off)
+ssize_t cdata_read(struct file *filp, char *buf, size_t size, loff_t *off)
 {
 	return 0;
 }
 
-int cdata_close(struct inode *inode, struct file *filp)
+static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff_t *off)
+{
+	return 0;
+}
+
+static int cdata_close(struct inode *inode, struct file *filp)
 {
 	printk(KERN_INFO "CDATA: is closed ~~\n");
 	return 0;
 }
 
+int cdata_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	return 0;
+}
+
+int cdata_flush(struct file *filp)
+{
+	printk(KERN_INFO "flush one time.\n");
+	return 0;
+}
+
 static struct file_operations cdata_fops = {
-	open:	 cdata_open,
-     release:	cdata_close,
-       write:	cdata_write, 
+	owner:      THIS_MODULE,
+ 	open:	    cdata_open,
+	release:    cdata_close,
+	write:	    cdata_write,
+	read:	    cdata_read,
+ 	ioctl:      cdata_ioctl,
+	flush:	    cdata_flush,		
 };
 
-int cdata_init_module(void)
+static int cdata_init_module(void)
 {
-	if(register_chrdev(dev_major, DEV_NAME, &cdata_fops) < 0){
+	if(register_chrdev(121/*dev_major*/, DEV_NAME, &cdata_fops) < 0){
 		printk(KERN_INFO "CDATA: can't register driver\n"); 
        		return -1;
 	}
@@ -81,9 +107,9 @@ int cdata_init_module(void)
 	return 0;
 }
 
-void cdata_cleanup_module(void)
+static void cdata_cleanup_module(void)
 {
-	unregister_chrdev(dev_major, DEV_NAME);
+	unregister_chrdev(121/*dev_major*/, DEV_NAME);
  	printk(KERN_INFO "CDATA.ko cleanup.\n");
 }
 
