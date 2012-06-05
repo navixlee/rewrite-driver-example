@@ -37,14 +37,17 @@
 
 
 
+#define BUF_SIZE  128
 #define DEV_NAME    "cdata"
 #define DEV_MAJOR   121
-/*  static unsigned int dev_major = 0;
-module_param(dev_major, uint, 0);*/
+
 
 struct cdata_t{
 	unsigned long *fb;
+ 	char *buf;
+	int index;
 };
+
 
 static int cdata_open(struct inode *inode, struct file *filp)
 {
@@ -57,7 +60,10 @@ static int cdata_open(struct inode *inode, struct file *filp)
 	printk(KERN_INFO "(Ivan Lee)minor number = %d.\n",minor);
 
 	cdata = kmalloc(sizeof(struct cdata_t), GFP_KERNEL); 
+	cdata->buf = kmalloc(BUF_SIZE, GFP_KERNEL);
 	cdata->fb = ioremap(0x33f00000, 320*240*4);
+    	cdata->index = 0;
+
         filp->private_data = (void*)cdata;
     	
 	return 0; 
@@ -68,11 +74,52 @@ static ssize_t cdata_read(struct file *filp, char *buf, size_t size, loff_t *off
 	return 0;
 }
 
+void flush_lcd(void *priv)
+{
+	struct cdata_t *cdata = (struct cdata_t*)priv;
+	unsigned char *fb;
+	unsigned char *pixel;
+	int index;
+	int i;
+
+	fb =(unsigned char *)cdata->fb;
+	index = cdata->index;
+
+ 	//printk(KERN_INFO "(Ivan Lee)%s: index = %d\n", __func__, index);
+
+	for(i = 0; i < index; i++){
+ 		//printk(KERN_INFO "(Ivan Lee)%s: index = %d\n", __func__, index);
+		writeb(pixel[i], fb++);
+		//printk(KERN_INFO "flush one byte data.\n");
+	}
+	cdata->index = 0;
+}
+
 static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff_t *off)
 {
+	unsigned int i;
+	unsigned int index;
+	unsigned char *pixel;
+	struct cdata_t *cdata = filp->private_data;
+
+	pixel = cdata->buf;		   	
+	index = cdata->index;
+
+	for(i = 0; i < size; i++){
+		if(index >= BUF_SIZE){
+			cdata->index = index;
+			flush_lcd((void *)cdata);
+			index = cdata->index;
+		}
+		copy_from_user(&pixel[index], &buf[i], 1);
+ 		index++;
+		printk(KERN_INFO "(Ivan Lee)%s: index = %d\n", __func__, index);
+	}
+
+
 	printk(KERN_INFO "(Ivan Lee)CDATA: Write!!\n"); 
 	
-	return 0;
+	return size;
 }
 
 static int cdata_close(struct inode *inode, struct file *filp)
