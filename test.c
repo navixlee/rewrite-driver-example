@@ -21,12 +21,19 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
+#include "cdata_ioctl.h"
+
 int main(void)
 {
-    int fd;
+	int   fd;
+        int   i = 10000;
+ 	char p[] = {0x55};
 
-    fd = open("/dev/cdata", O_RDWR);
-    close(fd);
+	fd = open("/dev/cdata", O_RDWR);
+	write(fd, p, 130);
+	write(fd, p, 128);  
+        //ioctl(fd, CDATA_CLEAR, &i);
+	close(fd);
 }
 
 
